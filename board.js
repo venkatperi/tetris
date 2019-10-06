@@ -31,6 +31,7 @@ module.exports = class Board {
    * @returns {Piece|*}
    */
   getRandomPiece() {
+    // return new Piece('O')
     let shapesKeys = Object.keys( shapes )
     let shapeKey = shapesKeys[Math.floor( Math.random() * shapesKeys.length )]
     return new Piece( shapeKey )
@@ -122,7 +123,6 @@ module.exports = class Board {
    */
   rotatePieceLeft90() {
     this.clearPiece( this.mainPiecePosX, this.mainPiecePosY, this.mainPiece )
-    // this.mainPiece.rotateLeft90()
     let res = this.mainPiece.rotateLeft90()
     if ( !this.collides( res, this.mainPiecePosX, this.mainPiecePosY ) )
       this.mainPiece = res
