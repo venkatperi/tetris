@@ -1,15 +1,19 @@
-const shapes = require( './shapes' )
+const shapes = require('./shapes')
 
 module.exports = class Piece {
 
-  constructor( shape ) {
+  constructor(shape, x, y, shade) {
     this.cells = []
-    if ( typeof (shape) === 'string' ) {
-      if ( Object.keys( shapes ).indexOf( shape ) < 0 )
-        throw new Error( `Invalid shape: ${ shape }` )
-      this.copy( shapes[shape] )
+    this.shade = shade || Math.ceil(Math.random() * 4)
+    this.x = x
+    this.y = y
+
+    if (typeof (shape) === 'string') {
+      if (Object.keys(shapes).indexOf(shape) < 0)
+        throw new Error(`Invalid shape: ${shape}`)
+      this.copy(shapes[shape])
     } else {
-      this.copy( shape.cells || shape )
+      this.copy(shape.cells || shape)
     }
   }
 
@@ -30,36 +34,38 @@ module.exports = class Piece {
     return this.cells[0].length
   }
 
+  /**
+   * Clears the piece
+   */
   clear() {
-    for ( let i = 0; i < this.height; i++ ) {
-      this.cells.push( Array( this.width ).fill( 0 ) )
+    for (let i = 0; i < this.height; i++) {
+      this.cells.push(Array(this.width).fill(0))
     }
   }
 
-  copy( shape ) {
+  copy(shape) {
     let height = shape.length
     let width = shape[0].length
-    for ( let i = 0; i < height; i++ ) {
+    for (let i = 0; i < height; i++) {
       this.cells[i] = []
-      for ( let j = 0; j < width; j++ ) {
-        this.cells[i][j] = shape[i][j]
+      for (let j = 0; j < width; j++) {
+        this.cells[i][j] = shape[i][j] ? this.shade : 0
       }
     }
   }
 
   rotateLeft90() {
     let res = []
-    for ( let j = 0; j < this.width; j++ ) {
+    for (let j = 0; j < this.width; j++) {
       res[this.width - j - 1] = []
-      for ( let i = 0; i < this.height; i++ ) {
+      for (let i = 0; i < this.height; i++) {
         res[this.width - j - 1][i] = this.cells[i][j]
       }
     }
-    // this.cells = res
-    return new Piece(res)
+    return new Piece(res, this.x, this.y, this.shade)
   }
 
-  getCell( x, y ) {
+  getCell(x, y) {
     return this.cells[y][x]
   }
 }

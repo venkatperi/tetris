@@ -1,19 +1,23 @@
-const shapes = require( './shapes' )
-const Piece = require( './piece' )
-const Input = require( './input' )
+const shapes = require('./shapes')
+const Piece = require('./piece')
+const Input = require('./input')
+const _ = require('lodash')
+const theme = require('./theme')
 
 const stdout = process.stdout;
 
 module.exports = class Board {
-  constructor( width, height ) {
+  constructor(width, height) {
     this.width = width;
     this.height = height;
     this.cells = [];
-    this.pieces = []
-    this.mainPiece = undefined
+    this.anchoredPieces = []
+    this.piece = undefined
     this.animInterval = 1000
+    this.refreshRate = 100
     this.nextPiece = this.getRandomPiece()
 
+    this.draw = _.throttle(this._doDraw, this.refreshRate)
     this.clear()
     this.introduceNewPiece()
     this.startAnimation()
@@ -23,7 +27,7 @@ module.exports = class Board {
    * Quit the game
    */
   quit() {
-    process.exit( 0 )
+    process.exit(0)
   }
 
   /**
@@ -31,27 +35,27 @@ module.exports = class Board {
    * @returns {Piece|*}
    */
   getRandomPiece() {
-    // return new Piece('O')
-    let shapesKeys = Object.keys( shapes )
-    let shapeKey = shapesKeys[Math.floor( Math.random() * shapesKeys.length )]
-    return new Piece( shapeKey )
+    let keys = Object.keys(shapes)
+    let key = keys[Math.floor(Math.random() * keys.length)]
+    return new Piece(key, 0, 0)
   }
 
   /**
    * Introduce a new piece
    */
   introduceNewPiece() {
-    this.mainPiece = this.nextPiece
+    this.piece = this.nextPiece
     this.nextPiece = this.getRandomPiece()
 
-    this.mainPiecePosX = Math.floor( (this.width - this.mainPiece.width) / 2 )
-    this.mainPiecePosY = 0
-    if ( this.collides( this.mainPiece, this.mainPiecePosX, this.mainPiecePosY ) ) {
-      stdout.write( 'Game over' )
+    this.piece.x = Math.floor((this.width - this.piece.width) / 2)
+    this.piece.y = 0
+
+    if (this.collides(this.piece)) {
+      stdout.write('Game over')
       this.quit()
     }
 
-    this.drawPiece( this.mainPiecePosX, this.mainPiecePosY, this.mainPiece )
+    this.drawPiece(this.piece)
     this.draw()
   }
 
@@ -59,32 +63,35 @@ module.exports = class Board {
    * Starts the animation
    */
   startAnimation() {
-    setInterval( () => {
+    setInterval(() => {
       let cleared = false
-      while ( this.clearBottomRow() ) {
+      while (this.clearBottomRow()) {
         cleared = true
       }
-      if ( !cleared )
-        this.moveMainPieceDown()
+      if (!cleared)
+        this.movePieceDown()
       this.draw()
-    }, this.animInterval )
+    }, this.animInterval)
   }
 
   /**
    * Returns true of the given piece will collide with board cells if drawn
    * at (x,y)
    * @param piece
-   * @param x
+   * @param x 
    * @param y
    * @returns {boolean}
    */
-  collides( piece, x, y ) {
-    if ( y + piece.height > this.height || x + piece.width > this.width )
+  collides(piece, x, y) {
+    x = x || piece.x
+    y = y || piece.y
+
+    if (y + piece.height > this.height || x + piece.width > this.width)
       return true
 
-    for ( let i = 0; i < piece.height; i++ ) {
-      for ( let j = 0; j < piece.width; j++ ) {
-        if ( this.cells[y + i][x + j] === 1 && piece.getCell( j, i ) === 1 )
+    for (let i = 0; i < piece.height; i++) {
+      for (let j = 0; j < piece.width; j++) {
+        if (this.cells[y + i][x + j] && piece.getCell(j, i))
           return true
       }
     }
@@ -96,15 +103,15 @@ module.exports = class Board {
    * called when the down arrow is pressed. Checks if the piece has reached
    * the bottom and fires off a new piece if so.
    */
-  moveMainPieceDown() {
-    this.clearPiece( this.mainPiecePosX, this.mainPiecePosY, this.mainPiece )
-    if ( !this.collides( this.mainPiece, this.mainPiecePosX, this.mainPiecePosY + 1 ) ) {
-      this.mainPiecePosY++
-      this.drawPiece( this.mainPiecePosX, this.mainPiecePosY, this.mainPiece )
+  movePieceDown() {
+    this.clearPiece(this.piece)
+    if (!this.collides(this.piece, this.piece.x, this.piece.y + 1)) {
+      this.piece.y++
+      this.drawPiece(this.piece)
       return false
     } else {
-      this.drawPiece( this.mainPiecePosX, this.mainPiecePosY, this.mainPiece )
-      this.pieces.push( this.mainPiece )
+      this.drawPiece(this.piece)
+      this.anchoredPieces.push(this.piece)
       this.introduceNewPiece()
       return true
     }
@@ -114,7 +121,7 @@ module.exports = class Board {
    * Drop this piece to the bottom
    */
   dropPiece() {
-    while ( !this.moveMainPieceDown() ) {
+    while (!this.movePieceDown()) {
     }
   }
 
@@ -122,34 +129,34 @@ module.exports = class Board {
    * Rotate the main piece 90 deg to the left
    */
   rotatePieceLeft90() {
-    this.clearPiece( this.mainPiecePosX, this.mainPiecePosY, this.mainPiece )
-    let res = this.mainPiece.rotateLeft90()
-    if ( !this.collides( res, this.mainPiecePosX, this.mainPiecePosY ) )
-      this.mainPiece = res
-    this.drawPiece( this.mainPiecePosX, this.mainPiecePosY, this.mainPiece )
+    this.clearPiece(this.piece)
+    let res = this.piece.rotateLeft90()
+    if (!this.collides(res, this.piece.x, this.piece.y))
+      this.piece = res
+    this.drawPiece(this.piece)
   }
 
   /**
    * Move the main piece one step to the left
    */
-  moveMainPieceLeft() {
-    if ( this.mainPiecePosX > 0 ) {
-      this.clearPiece( this.mainPiecePosX, this.mainPiecePosY, this.mainPiece )
-      if ( !this.collides( this.mainPiece, this.mainPiecePosX - 1, this.mainPiecePosY ) )
-        this.mainPiecePosX--
-      this.drawPiece( this.mainPiecePosX, this.mainPiecePosY, this.mainPiece )
+  movePieceLeft() {
+    if (this.piece.x > 0) {
+      this.clearPiece(this.piece)
+      if (!this.collides(this.piece, this.piece.x - 1, this.piece.y))
+        this.piece.x--
+      this.drawPiece(this.piece)
     }
   }
 
   /**
    * Move the main piece one step to the right
    */
-  moveMainPieceRight() {
-    if ( this.mainPiecePosX + this.mainPiece.width < this.width ) {
-      this.clearPiece( this.mainPiecePosX, this.mainPiecePosY, this.mainPiece )
-      if ( !this.collides( this.mainPiece, this.mainPiecePosX + 1, this.mainPiecePosY ) )
-        this.mainPiecePosX++
-      this.drawPiece( this.mainPiecePosX, this.mainPiecePosY, this.mainPiece )
+  movePieceRight() {
+    if (this.piece.x + this.piece.width < this.width) {
+      this.clearPiece(this.piece)
+      if (!this.collides(this.piece, this.piece.x + 1, this.piece.y))
+        this.piece.x++
+      this.drawPiece(this.piece)
     }
   }
 
@@ -157,40 +164,37 @@ module.exports = class Board {
    * Clears the bottom row if all cells are set
    */
   clearBottomRow() {
-    let allSet = true
-    for ( let i = 0; i < this.width; i++ ) {
-      if ( this.cells[this.height - 1][i] === 0 )
-        allSet = false
+    for (let i = 0; i < this.width; i++) {
+      if (this.cells[this.height - 1][i] === 0)
+        return false
     }
 
-    if ( allSet ) {
-      this.clearPiece( this.mainPiecePosX, this.mainPiecePosY, this.mainPiece )
-      this.cells.pop()
-      this.cells.unshift( Array( this.width ).fill( 0 ) )
-      this.drawPiece( this.mainPiecePosX, this.mainPiecePosY, this.mainPiece )
-    }
+    this.clearPiece(this.piece)
+    this.cells.pop()
+    this.cells.unshift(Array(this.width).fill(0))
+    this.drawPiece(this.piece)
 
-    return allSet
+    return true
   }
 
   /**
    * Process input
    * @param input
    */
-  handleInput( input ) {
-    switch ( input ) {
+  handleInput(input) {
+    switch (input) {
       case Input.LEFT:
-        this.moveMainPieceLeft();
+        this.movePieceLeft();
         this.draw()
         break;
 
       case Input.RIGHT:
-        this.moveMainPieceRight();
+        this.movePieceRight();
         this.draw()
         break;
 
       case Input.DOWN:
-        this.moveMainPieceDown();
+        this.movePieceDown();
         this.draw()
         break;
 
@@ -210,61 +214,59 @@ module.exports = class Board {
    * Clear the board
    */
   clear() {
-    for ( let r = 0; r < this.height; r++ ) {
+    for (let r = 0; r < this.height; r++) {
       const row = [];
-      for ( let c = 0; c < this.width; c++ ) {
-        row.push( 0 );
+      for (let c = 0; c < this.width; c++) {
+        row.push(0);
       }
-      this.cells.push( row );
+      this.cells.push(row);
     }
   }
 
   /**
    * Draw contents of board with border
    */
-  draw() {
+  _doDraw() {
     this.clearScreen()
 
-    stdout.write( `Score: ${ this.pieces.length }\n\n` )
+    stdout.write(`Score: ${this.anchoredPieces.length}\n\n`)
 
-    for ( let i = 0; i < this.nextPiece.height; i++ ) {
-      for ( let j = 0; j < this.nextPiece.width; j++ ) {
-        stdout.write( this.nextPiece.getCell( j, i ) === 0 ? ' ' : '#' )
+    for (let i = 0; i < this.nextPiece.height; i++) {
+      for (let j = 0; j < this.nextPiece.width; j++) {
+        let c = this.nextPiece.getCell(j, i)
+        stdout.write(c ? theme.blocks[c - 1] : ' ')
       }
-      stdout.write( '\n' );
+      stdout.write('\n');
     }
 
-    if ( this.nextPiece.height < 2 )
-      stdout.write( '\n' );
+    if (this.nextPiece.height < 2)
+      stdout.write('\n');
 
-    stdout.write( '\n' );
-    for ( let col = 0; col < this.width + 2; col++ ) {
-      stdout.write( '*' );
+    stdout.write('\n');
+    for (let col = 0; col < this.width + 2; col++) {
+      stdout.write(theme.fullBlockLight);
     }
 
-    stdout.write( '\n' );
-    for ( let row = 0; row < this.height; row++ ) {
-      stdout.write( '|' );
-      for ( let col = 0; col < this.width; col++ ) {
-        if ( this.cells[row][col] !== 0 ) {
-          stdout.write( '#' );
-        } else {
-          stdout.write( ' ' );
-        }
+    stdout.write('\n');
+    for (let row = 0; row < this.height; row++) {
+      stdout.write(theme.fullBlockLight);
+      for (let col = 0; col < this.width; col++) {
+        let c = this.cells[row][col]
+        stdout.write(c ? theme.blocks[c - 1] : ' ');
       }
-      stdout.write( '|\n' );
+      stdout.write(theme.fullBlockLight + '\n');
     }
-    for ( let col = 0; col < this.width + 2; col++ ) {
-      stdout.write( '*' );
+    for (let col = 0; col < this.width + 2; col++) {
+      stdout.write(theme.fullBlockLight);
     }
-    stdout.write( '\n' );
+    stdout.write('\n');
   }
 
   /**
    * Clear the screen
    */
   clearScreen() {
-    stdout.write( '\x1B[2J' );
+    stdout.write('\x1B[2J');
   }
 
   /**
@@ -273,38 +275,38 @@ module.exports = class Board {
    * @param y
    * @param val
    */
-  setCell( x, y, val ) {
+  setCell(x, y, val) {
     this.cells[y][x] = val;
   }
 
   /**
    * Draw given piece at coordinates (x,y)
-   * @param x
-   * @param y
    * @param piece
    */
-  drawPiece( x, y, piece ) {
-    for ( let i = 0; i < piece.height; i++ ) {
-      for ( let j = 0; j < piece.width; j++ ) {
-        let c = piece.getCell( j, i )
-        if ( c !== 0 )
-          this.setCell( x + j, y + i, c )
+  drawPiece(piece) {
+    let x = piece.x
+    let y = piece.y
+    for (let i = 0; i < piece.height; i++) {
+      for (let j = 0; j < piece.width; j++) {
+        let c = piece.getCell(j, i)
+        if (c !== 0)
+          this.setCell(x + j, y + i, c)
       }
     }
   }
 
   /**
    * Clears (removes) piece from the board
-   * @param x
-   * @param y
    * @param piece
    */
-  clearPiece( x, y, piece ) {
-    for ( let i = 0; i < piece.height; i++ ) {
-      for ( let j = 0; j < piece.width; j++ ) {
-        let c = piece.getCell( j, i )
-        if ( c !== 0 )
-          this.setCell( x + j, y + i, 0 )
+  clearPiece(piece) {
+    let x = piece.x
+    let y = piece.y
+    for (let i = 0; i < piece.height; i++) {
+      for (let j = 0; j < piece.width; j++) {
+        let c = piece.getCell(j, i)
+        if (c !== 0)
+          this.setCell(x + j, y + i, 0)
       }
     }
   }
