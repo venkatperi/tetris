@@ -13,7 +13,7 @@ module.exports = class Board {
     this.cells = [];
     this.anchoredPieces = []
     this.piece = undefined
-    this.animInterval = 1000
+    this.dropInterval = 1000
     this.refreshRate = 100
     this.nextPiece = this.getRandomPiece()
 
@@ -64,14 +64,10 @@ module.exports = class Board {
    */
   startAnimation() {
     setInterval(() => {
-      let cleared = false
-      while (this.clearBottomRow()) {
-        cleared = true
-      }
-      if (!cleared)
-        this.movePieceDown()
+      this.clearFullRows()
+      this.movePieceDown()
       this.draw()
-    }, this.animInterval)
+    }, this.dropInterval)
   }
 
   /**
@@ -161,20 +157,21 @@ module.exports = class Board {
   }
 
   /**
-   * Clears the bottom row if all cells are set
+   * Clears full rows 
    */
-  clearBottomRow() {
-    for (let i = 0; i < this.width; i++) {
-      if (this.cells[this.height - 1][i] === 0)
-        return false
-    }
-
+  clearFullRows() {
+    let count = 0
     this.clearPiece(this.piece)
-    this.cells.pop()
-    this.cells.unshift(Array(this.width).fill(0))
+    for (let row = 0; row < this.height; row++) {
+      if (this.cells[row].every(cell => !!cell)) {
+        count++
+        this.cells.splice(row, 1)
+        this.cells.unshift(Array(this.width).fill(0))
+      }
+    }
     this.drawPiece(this.piece)
-
-    return true
+    if (count)
+      this.draw()
   }
 
   /**
