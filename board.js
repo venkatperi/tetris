@@ -4,9 +4,10 @@ const Input = require('./input')
 const _ = require('lodash')
 const theme = require('./theme')
 
-const stdout = process.stdout;
+const { stdout } = process;
 
 module.exports = class Board {
+
   constructor(width, height) {
     this.width = width;
     this.height = height;
