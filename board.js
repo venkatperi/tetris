@@ -65,7 +65,7 @@ module.exports = class Board {
    */
   startAnimation() {
     setInterval(() => {
-      this.clearFullRows()
+      // this.clearFullRows()
       this.movePieceDown()
       this.draw()
     }, this.dropInterval)
@@ -111,6 +111,7 @@ module.exports = class Board {
       this.drawPiece(this.piece)
       this.anchoredPieces.push(this.piece)
       this.introduceNewPiece()
+      this.clearFullRows()
       return false
     }
   }
