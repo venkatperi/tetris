@@ -91,6 +91,7 @@ module.exports = class Board {
           return true
       }
     }
+
     return false
   }
 
@@ -104,12 +105,12 @@ module.exports = class Board {
     if (!this.collides(this.piece, this.piece.x, this.piece.y + 1)) {
       this.piece.y++
       this.drawPiece(this.piece)
-      return false
+      return true
     } else {
       this.drawPiece(this.piece)
       this.anchoredPieces.push(this.piece)
       this.introduceNewPiece()
-      return true
+      return false
     }
   }
 
@@ -117,7 +118,7 @@ module.exports = class Board {
    * Drop this piece to the bottom
    */
   dropPiece() {
-    while (!this.movePieceDown()) {
+    while (this.movePieceDown()) {
     }
   }
 
@@ -211,13 +212,7 @@ module.exports = class Board {
    * Clear the board
    */
   clear() {
-    for (let r = 0; r < this.height; r++) {
-      const row = [];
-      for (let c = 0; c < this.width; c++) {
-        row.push(0);
-      }
-      this.cells.push(row);
-    }
+    this.cells = Array(this.height).fill(0).map(x => Array(this.width).fill(0))
   }
 
   /**

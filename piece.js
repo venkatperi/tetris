@@ -38,9 +38,7 @@ module.exports = class Piece {
    * Clears the piece
    */
   clear() {
-    for (let i = 0; i < this.height; i++) {
-      this.cells.push(Array(this.width).fill(0))
-    }
+    this.cells = Array(this.height).fill(0).map(x => Array(this.width).fill(x))
   }
 
   copy(shape) {
