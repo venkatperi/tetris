@@ -277,7 +277,7 @@ module.exports = class Board extends EventEmitter {
 
     let lines = ['']
 
-    lines.push(`Level: ${this.level}`)
+    // lines.push(`Level: ${this.level}`)
     lines.push(`Score: ${this.score}`)
     lines.push('', '')
 
