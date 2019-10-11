@@ -2,14 +2,18 @@
   "name": "tetris",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "tetris.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node tetris.js",
+    "pkg": "pkg tetris.js --out-path build"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "chalk": "^2.4.2",
     "lodash": "^4.17.15"
+  },
+  "devDependencies": {
+    "pkg": "^4.4.0"
   }
 }

@@ -15,10 +15,9 @@ module.exports = class Board extends EventEmitter {
     this.width = width;
     this.height = height;
     this.cells = [];
-    this.anchoredPieces = []
     this.piece = undefined
     this.dropInterval = 1000
-    this.refreshRate = 100
+    this.refreshRate = 50
     this.nextPiece = this.getRandomPiece()
     this.level = 1
     this._score = 0
@@ -34,6 +33,8 @@ module.exports = class Board extends EventEmitter {
 
     this.on("anchor", () => {
       this.score++
+      this.introduceNewPiece()
+      this.clearFullRows()
     })
   }
 
@@ -145,9 +146,6 @@ module.exports = class Board extends EventEmitter {
       return true
     } else {
       this.drawPiece(this.piece)
-      this.anchoredPieces.push(this.piece)
-      this.introduceNewPiece()
-      this.clearFullRows()
       this.emit('anchor')
       return false
     }
@@ -157,8 +155,7 @@ module.exports = class Board extends EventEmitter {
    * Drop this piece to the bottom
    */
   dropPiece() {
-    while (this.movePieceDown()) {
-    }
+    while (this.movePieceDown()) { }
   }
 
   /**
@@ -221,31 +218,20 @@ module.exports = class Board extends EventEmitter {
    */
   handleInput(input) {
     switch (input) {
-      case Input.LEFT:
-        this.movePieceLeft();
-        this.draw()
-        break;
+      case Input.LEFT: this.movePieceLeft(); break;
 
-      case Input.RIGHT:
-        this.movePieceRight();
-        this.draw()
-        break;
+      case Input.RIGHT: this.movePieceRight(); break;
 
-      case Input.DOWN:
-        this.movePieceDown();
-        this.draw()
-        break;
+      case Input.DOWN: this.movePieceDown(); break;
 
-      case Input.UP:
-        this.rotatePieceLeft90();
-        this.draw()
-        break;
+      case Input.UP: this.rotatePieceLeft90(); break;
 
-      case Input.SPACE:
-        this.dropPiece();
-        this.draw()
-        break;
+      case Input.SPACE: this.dropPiece(); break;
+
+      default: return
     }
+
+    this.draw()
   }
 
   /**
@@ -256,15 +242,15 @@ module.exports = class Board extends EventEmitter {
   }
 
   squarePixels(c1, c2) {
-    let _c1 = c1 ? 1 : 0
-    let _c2 = c2 ? 1 : 0
-    let out = ' '
+    let [_c1, _c2, out] = [c1 ? 1 : 0, c2 ? 1 : 0, ' ']
+
     switch (_c1 * 10 + _c2) {
       case 0: return ' ';
       case 10: out = '▀'; break;
       case 1: out = '▄'; break;
       case 11: out = '█'; break;
     }
+
     let c = c1 || c2
     return chalk.keyword(theme.colors[c - 1])(out)
   }
@@ -275,11 +261,10 @@ module.exports = class Board extends EventEmitter {
   _doDraw() {
     if (!this.running) return
 
-    let lines = ['']
-
-    // lines.push(`Level: ${this.level}`)
-    lines.push(`Score: ${this.score}`)
-    lines.push('', '')
+    let lines = [
+      '',
+      `Score: ${this.score}`,
+      '', '']
 
     let dw = Math.round((this.width - this.nextPiece.width) / 2)
     let prefix = Array(dw).fill(' ').join('')
@@ -310,19 +295,13 @@ module.exports = class Board extends EventEmitter {
       lines.push(line.join(''))
     }
 
-    lines.push(Array(this.width + 2).fill('▀').join(''))
-    lines.push('')
-    lines.push('← left, → right, ↓ down, ↑ rotate, SPACE: drop, q: quit ')
-    lines.push('')
+    lines.push(
+      Array(this.width + 2).fill('▀').join(''),
+      '',
+      '← left, → right, ↓ down, ↑ rotate, SPACE: drop, q: quit ',
+      '')
 
     stdout.write('\x1B[2J' + lines.join('\n'))
-  }
-
-  /**
-   * Clear the screen
-   */
-  clearScreen() {
-    stdout.write('\x1B[2J');
   }
 
   /**
@@ -339,14 +318,13 @@ module.exports = class Board extends EventEmitter {
    * Draw given piece at coordinates (x,y)
    * @param piece
    */
-  drawPiece(piece) {
-    let x = piece.x
-    let y = piece.y
+  drawPiece(piece, clear) {
+    let [x, y] = [piece.x, piece.y]
+
     for (let i = 0; i < piece.height; i++) {
       for (let j = 0; j < piece.width; j++) {
         let c = piece.getCell(j, i)
-        if (c !== 0)
-          this.setCell(x + j, y + i, c)
+        c && this.setCell(x + j, y + i, clear ? 0 : c)
       }
     }
   }
@@ -356,15 +334,7 @@ module.exports = class Board extends EventEmitter {
    * @param piece
    */
   clearPiece(piece) {
-    let x = piece.x
-    let y = piece.y
-    for (let i = 0; i < piece.height; i++) {
-      for (let j = 0; j < piece.width; j++) {
-        let c = piece.getCell(j, i)
-        if (c !== 0)
-          this.setCell(x + j, y + i, 0)
-      }
-    }
+    this.drawPiece(piece, true)
   }
 }
 
