@@ -65,7 +65,6 @@ module.exports = class Board {
    */
   startAnimation() {
     setInterval(() => {
-      // this.clearFullRows()
       this.movePieceDown()
       this.draw()
     }, this.dropInterval)
@@ -226,6 +225,7 @@ module.exports = class Board {
     stdout.write(`Score: ${this.anchoredPieces.length}\n\n`)
 
     for (let i = 0; i < this.nextPiece.height; i++) {
+      stdout.write('   ')
       for (let j = 0; j < this.nextPiece.width; j++) {
         let c = this.nextPiece.getCell(j, i)
         stdout.write(c ? theme.blocks[c - 1] : ' ')
@@ -238,20 +238,30 @@ module.exports = class Board {
 
     stdout.write('\n');
     for (let col = 0; col < this.width + 2; col++) {
-      stdout.write(theme.fullBlockLight);
+      stdout.write('▄');
     }
 
     stdout.write('\n');
-    for (let row = 0; row < this.height; row++) {
+    for (let row = 0; row < this.height; row += 2) {
       stdout.write(theme.fullBlockLight);
       for (let col = 0; col < this.width; col++) {
-        let c = this.cells[row][col]
-        stdout.write(c ? theme.blocks[c - 1] : ' ');
+        let c1 = this.cells[row][col]
+        let c2 = this.cells[row + 1][col]
+        let out = ' '
+        switch (c1 * 10 + c2) {
+          case 0: out = ' '; break;
+          case 10: out = '▀'; break;
+          case 1: out = '▄'; break;
+          case 11: out = '█'; break;
+        }
+        stdout.write(out)
+
+        // stdout.write(c ? theme.blocks[c - 1] : ' ');
       }
       stdout.write(theme.fullBlockLight + '\n');
     }
     for (let col = 0; col < this.width + 2; col++) {
-      stdout.write(theme.fullBlockLight);
+      stdout.write('▀');
     }
     stdout.write('\n');
   }
