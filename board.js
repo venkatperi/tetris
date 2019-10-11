@@ -52,7 +52,7 @@ module.exports = class Board {
     this.piece.y = 0
 
     if (this.collides(this.piece)) {
-      stdout.write('Game over')
+      stdout.write('Game over\n')
       this.quit()
     }
 
@@ -216,54 +216,60 @@ module.exports = class Board {
     this.cells = Array(this.height).fill(0).map(x => Array(this.width).fill(0))
   }
 
+  squarePixels(c1, c2) {
+    let out = ' '
+    switch (c1 * 10 + c2) {
+      case 0: out = ' '; break;
+      case 10: out = '▀'; break;
+      case 1: out = '▄'; break;
+      case 11: out = '█'; break;
+    }
+    return out
+  }
+
   /**
    * Draw contents of board with border
    */
   _doDraw() {
-    this.clearScreen()
+    let lines = ['']
 
-    stdout.write(`Score: ${this.anchoredPieces.length}\n\n`)
+    lines.push(`Score: ${this.anchoredPieces.length}`)
+    lines.push('')
+    lines.push('')
 
-    for (let i = 0; i < this.nextPiece.height; i++) {
-      stdout.write('   ')
+    let dw = Math.round((this.width - this.nextPiece.width) / 2)
+    let prefix = Array(dw).fill(' ').join('')
+    for (let i = 0; i < this.nextPiece.height; i += 2) {
+      let line = [prefix]
       for (let j = 0; j < this.nextPiece.width; j++) {
-        let c = this.nextPiece.getCell(j, i)
-        stdout.write(c ? theme.blocks[c - 1] : ' ')
+        let c1 = this.nextPiece.getCell(j, i)
+        let c2 = i < this.nextPiece.height - 1 ? this.nextPiece.getCell(j, i + 1) : 0
+        line.push(this.squarePixels(c1, c2))
       }
-      stdout.write('\n');
+      lines.push(line.join(''))
     }
 
     if (this.nextPiece.height < 2)
-      stdout.write('\n');
+      lines.push('')
 
-    stdout.write('\n');
-    for (let col = 0; col < this.width + 2; col++) {
-      stdout.write('▄');
-    }
+    lines.push('')
+    lines.push(Array(this.width + 2).fill('▄').join(''))
 
-    stdout.write('\n');
     for (let row = 0; row < this.height; row += 2) {
-      stdout.write(theme.fullBlockLight);
+      let line = [theme.fullBlock]
       for (let col = 0; col < this.width; col++) {
         let c1 = this.cells[row][col]
         let c2 = this.cells[row + 1][col]
-        let out = ' '
-        switch (c1 * 10 + c2) {
-          case 0: out = ' '; break;
-          case 10: out = '▀'; break;
-          case 1: out = '▄'; break;
-          case 11: out = '█'; break;
-        }
-        stdout.write(out)
-
-        // stdout.write(c ? theme.blocks[c - 1] : ' ');
+        line.push(this.squarePixels(c1, c2))
       }
-      stdout.write(theme.fullBlockLight + '\n');
+      line.push(theme.fullBlock)
+      lines.push(line.join(''))
     }
-    for (let col = 0; col < this.width + 2; col++) {
-      stdout.write('▀');
-    }
-    stdout.write('\n');
+
+    lines.push(Array(this.width + 2).fill('▀').join(''))
+    lines.push('')
+
+    stdout.write('\x1B[2J' + lines.join('\n'))
   }
 
   /**
