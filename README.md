@@ -2,7 +2,11 @@
 
 ![screenshot](tetris.png)
 
-Download & Install (via node):
+### Download Prebuilt Binaries
+Download prebuilt binaries (created with `pkg`) from [here](https://github.com/venkatperi/tetris/releases/latest)
+
+### Download & Install (via node)
+
 ```
 git clone https://github.com/venkatperi/tetris
 cd tetris
