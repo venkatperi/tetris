@@ -3,12 +3,15 @@ let theme = {
     fullBlockDark: '▓',
     fullBlockMedium: '▒',
     fullBlockLight: '░',
-    blocks: []
+    blocks: [],
+    colors: ['red', 'blue', 'yellow', 'green', 'magenta', 'cyan', 'white']
+
 }
 
 theme.blocks[0] = theme.fullBlock
 theme.blocks[1] = theme.fullBlockDark
 theme.blocks[2] = theme.fullBlockMedium
 theme.blocks[3] = theme.fullBlockLight
+
 
 module.exports = theme

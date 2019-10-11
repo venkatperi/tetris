@@ -1,14 +1,17 @@
 const shapes = require('./shapes')
 const Piece = require('./piece')
 const Input = require('./input')
-const _ = require('lodash')
 const theme = require('./theme')
+const _ = require('lodash')
+const chalk = require('chalk')
+const { EventEmitter } = require('events')
 
 const { stdout } = process;
 
-module.exports = class Board {
+module.exports = class Board extends EventEmitter {
 
   constructor(width, height) {
+    super()
     this.width = width;
     this.height = height;
     this.cells = [];
@@ -17,18 +20,42 @@ module.exports = class Board {
     this.dropInterval = 1000
     this.refreshRate = 100
     this.nextPiece = this.getRandomPiece()
+    this.level = 1
+    this._score = 0
 
     this.draw = _.throttle(this._doDraw, this.refreshRate)
     this.clear()
+    this.start()
     this.introduceNewPiece()
-    this.startAnimation()
+
+    this.on('clear', () => {
+      this.score += this.width
+    })
+
+    this.on("anchor", () => {
+      this.score++
+    })
   }
 
-  /**
-   * Quit the game
-   */
-  quit() {
-    process.exit(0)
+  get running() {
+    return this.timer
+  }
+
+  get score() {
+    return this._score
+  }
+
+  set score(val) {
+    this._score = val
+
+    let level = Math.ceil(this._score / 25)
+    if (level > this.level) {
+      this.level = level
+      this.stop()
+      this.dropInterval -= 25
+      if (this.dropInterval < 250) this.dropInterval = 250
+      this.start()
+    }
   }
 
   /**
@@ -45,6 +72,7 @@ module.exports = class Board {
    * Introduce a new piece
    */
   introduceNewPiece() {
+    this.emit('piece')
     this.piece = this.nextPiece
     this.nextPiece = this.getRandomPiece()
 
@@ -52,8 +80,8 @@ module.exports = class Board {
     this.piece.y = 0
 
     if (this.collides(this.piece)) {
-      stdout.write('Game over\n')
-      this.quit()
+      this.emit('over')
+      return this.stop()
     }
 
     this.drawPiece(this.piece)
@@ -63,11 +91,20 @@ module.exports = class Board {
   /**
    * Starts the animation
    */
-  startAnimation() {
-    setInterval(() => {
+  start() {
+    this.emit('start')
+    this.timer = setInterval(() => {
       this.movePieceDown()
       this.draw()
     }, this.dropInterval)
+  }
+
+  stop() {
+    if (this.running) {
+      clearInterval(this.timer)
+      this.timer = undefined
+    }
+    this.emit('stop')
   }
 
   /**
@@ -111,6 +148,7 @@ module.exports = class Board {
       this.anchoredPieces.push(this.piece)
       this.introduceNewPiece()
       this.clearFullRows()
+      this.emit('anchor')
       return false
     }
   }
@@ -169,6 +207,7 @@ module.exports = class Board {
         count++
         this.cells.splice(row, 1)
         this.cells.unshift(Array(this.width).fill(0))
+        this.emit('clear')
       }
     }
     this.drawPiece(this.piece)
@@ -217,25 +256,30 @@ module.exports = class Board {
   }
 
   squarePixels(c1, c2) {
+    let _c1 = c1 ? 1 : 0
+    let _c2 = c2 ? 1 : 0
     let out = ' '
-    switch (c1 * 10 + c2) {
-      case 0: out = ' '; break;
+    switch (_c1 * 10 + _c2) {
+      case 0: return ' ';
       case 10: out = '▀'; break;
       case 1: out = '▄'; break;
       case 11: out = '█'; break;
     }
-    return out
+    let c = c1 || c2
+    return chalk.keyword(theme.colors[c - 1])(out)
   }
 
   /**
    * Draw contents of board with border
    */
   _doDraw() {
+    if (!this.running) return
+
     let lines = ['']
 
-    lines.push(`Score: ${this.anchoredPieces.length}`)
-    lines.push('')
-    lines.push('')
+    lines.push(`Level: ${this.level}`)
+    lines.push(`Score: ${this.score}`)
+    lines.push('', '')
 
     let dw = Math.round((this.width - this.nextPiece.width) / 2)
     let prefix = Array(dw).fill(' ').join('')
@@ -267,6 +311,8 @@ module.exports = class Board {
     }
 
     lines.push(Array(this.width + 2).fill('▀').join(''))
+    lines.push('')
+    lines.push('← left, → right, ↓ down, ↑ rotate, SPACE: drop, q: quit ')
     lines.push('')
 
     stdout.write('\x1B[2J' + lines.join('\n'))

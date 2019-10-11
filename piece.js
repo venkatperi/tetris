@@ -1,10 +1,11 @@
 const shapes = require('./shapes')
+const theme = require('./theme')
 
 module.exports = class Piece {
 
-  constructor(shape, x, y, shade) {
+  constructor(shape, x, y, color) {
     this.cells = []
-    this.shade = shade || Math.ceil(Math.random() * 4)
+    this.color = color || Math.ceil(Math.random() * theme.colors.length)
     this.x = x
     this.y = y
 
@@ -47,7 +48,7 @@ module.exports = class Piece {
     for (let i = 0; i < height; i++) {
       this.cells[i] = []
       for (let j = 0; j < width; j++) {
-        this.cells[i][j] = shape[i][j] ? 1 : 0
+        this.cells[i][j] = shape[i][j] ? this.color : 0
       }
     }
   }
@@ -60,7 +61,7 @@ module.exports = class Piece {
         res[this.width - j - 1][i] = this.cells[i][j]
       }
     }
-    return new Piece(res, this.x, this.y, this.shade)
+    return new Piece(res, this.x, this.y, this.color)
   }
 
   getCell(x, y) {

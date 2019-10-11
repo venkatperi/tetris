@@ -36,7 +36,6 @@ const game = new Game(10, 20);
 
 function handleInput(input) {
   if (input === Input.QUIT) {
-    console.log('exiting');
     process.exit();
   }
   game.handleInput(input)
