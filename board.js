@@ -217,17 +217,23 @@ module.exports = class Board extends EventEmitter {
    * @param input
    */
   handleInput(input) {
+    if (input === Input.STARTSTOP) {
+      if (this.running)
+        this.stop();
+      else
+        this.start();
+      this.draw()
+      return
+    }
+
+    if (!this.running)
+      return
     switch (input) {
       case Input.LEFT: this.movePieceLeft(); break;
-
       case Input.RIGHT: this.movePieceRight(); break;
-
       case Input.DOWN: this.movePieceDown(); break;
-
       case Input.UP: this.rotatePieceLeft90(); break;
-
       case Input.SPACE: this.dropPiece(); break;
-
       default: return
     }
 
@@ -238,14 +244,14 @@ module.exports = class Board extends EventEmitter {
    * Clear the board
    */
   clear() {
-    this.cells = Array(this.height).fill(0).map(x => Array(this.width).fill(0))
+    this.cells = Array(this.height).fill(0).map(() => Array(this.width).fill(0))
   }
 
   squarePixels(c1, c2) {
     let [_c1, _c2, out] = [c1 ? 1 : 0, c2 ? 1 : 0, ' ']
 
     switch (_c1 * 10 + _c2) {
-      case 0: return ' ';
+      case 0: return chalk.rgb(60, 60, 60)('⸱');
       case 10: out = '▀'; break;
       case 1: out = '▄'; break;
       case 11: out = '█'; break;
@@ -259,11 +265,11 @@ module.exports = class Board extends EventEmitter {
    * Draw contents of board with border
    */
   _doDraw() {
-    if (!this.running) return
+    // if (!this.running) return
 
     let lines = [
       '',
-      `Score: ${this.score}`,
+      `Score: ${this.score} ${this.running ? "" : "PAUSED"}`,
       '', '']
 
     let dw = Math.round((this.width - this.nextPiece.width) / 2)
@@ -298,7 +304,7 @@ module.exports = class Board extends EventEmitter {
     lines.push(
       Array(this.width + 2).fill('▀').join(''),
       '',
-      '← left, → right, ↓ down, ↑ rotate, SPACE: drop, q: quit ',
+      '← left, → right, ↓ down, ↑ rotate\nSPACE: drop, s: start/stop, q: quit ',
       '')
 
     stdout.write('\x1B[2J' + lines.join('\n'))

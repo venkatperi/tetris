@@ -5,4 +5,5 @@ module.exports = {
   DOWN: 'down',
   QUIT: 'quit',
   SPACE: 'space',
+  STARTSTOP: 'startstop'
 };

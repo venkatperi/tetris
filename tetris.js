@@ -26,6 +26,9 @@ stdin.on('data', function (key) {
     case 'q':
       handleInput(Input.QUIT);
       break;
+    case 's':
+      handleInput(Input.STARTSTOP);
+      break;
     case ' ':
       handleInput(Input.SPACE);
       break;
