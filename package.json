@@ -2,6 +2,7 @@
   "name": "tetris",
   "version": "1.0.0",
   "description": "",
+  "bin": "bin/tetris-cli",
   "main": "tetris.js",
   "scripts": {
     "start": "node tetris.js",
@@ -11,7 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "chalk": "^2.4.2",
-    "lodash": "^4.17.15"
+    "lodash": "^4.17.15",
+    "random-js": "^2.1.0"
   },
   "devDependencies": {
     "pkg": "^4.4.0"

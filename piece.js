@@ -61,7 +61,12 @@ module.exports = class Piece {
         res[this.width - j - 1][i] = this.cells[i][j]
       }
     }
-    return new Piece(res, this.x, this.y, this.color)
+    let d = (this.height - this.width) / 2
+    if (d < 0)
+      d = Math.ceil(d)
+    else
+      d = Math.floor(d)
+    return new Piece(res, (this.x - d), (this.y + d), this.color)
   }
 
   getCell(x, y) {

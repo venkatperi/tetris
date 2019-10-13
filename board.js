@@ -5,6 +5,7 @@ const theme = require('./theme')
 const _ = require('lodash')
 const chalk = require('chalk')
 const { EventEmitter } = require('events')
+const { Random } = require('random-js')
 
 const { stdout } = process;
 
@@ -18,6 +19,7 @@ module.exports = class Board extends EventEmitter {
     this.piece = undefined
     this.dropInterval = 1000
     this.refreshRate = 50
+    this.random = new Random()
     this.nextPiece = this.getRandomPiece()
     this.level = 1
     this._score = 0
@@ -65,7 +67,7 @@ module.exports = class Board extends EventEmitter {
    */
   getRandomPiece() {
     let keys = Object.keys(shapes)
-    let key = keys[Math.floor(Math.random() * keys.length)]
+    let key = keys[this.random.integer(0, keys.length - 1)]
     return new Piece(key, 0, 0)
   }
 
