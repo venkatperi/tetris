@@ -1,11 +1,12 @@
 const shapes = require('./shapes')
 const theme = require('./theme')
+const { randomInt } = require('./util')
 
 module.exports = class Piece {
 
   constructor(shape, x, y, color) {
     this.cells = []
-    this.color = color || Math.ceil(Math.random() * theme.colors.length)
+    this.color = color || randomInt(1, theme.colors.length)
     this.x = x
     this.y = y
 
@@ -62,10 +63,7 @@ module.exports = class Piece {
       }
     }
     let d = (this.height - this.width) / 2
-    if (d < 0)
-      d = Math.ceil(d)
-    else
-      d = Math.floor(d)
+    d = d < 0 ? Math.ceil(d) : Math.floor(d)
     return new Piece(res, (this.x - d), (this.y + d), this.color)
   }
 

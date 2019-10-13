@@ -5,7 +5,7 @@ const theme = require('./theme')
 const _ = require('lodash')
 const chalk = require('chalk')
 const { EventEmitter } = require('events')
-const { Random } = require('random-js')
+const { repeatString, randomInt } = require('./util')
 
 const { stdout } = process;
 
@@ -18,8 +18,7 @@ module.exports = class Board extends EventEmitter {
     this.cells = [];
     this.piece = undefined
     this.dropInterval = 1000
-    this.refreshRate = 50
-    this.random = new Random()
+    this.refreshRate = 33
     this.nextPiece = this.getRandomPiece()
     this.level = 1
     this._score = 0
@@ -67,7 +66,7 @@ module.exports = class Board extends EventEmitter {
    */
   getRandomPiece() {
     let keys = Object.keys(shapes)
-    let key = keys[this.random.integer(0, keys.length - 1)]
+    let key = keys[randomInt(0, keys.length - 1)]
     return new Piece(key, 0, 0)
   }
 
@@ -122,7 +121,7 @@ module.exports = class Board extends EventEmitter {
     x = x || piece.x
     y = y || piece.y
 
-    if (y + piece.height > this.height || x + piece.width > this.width)
+    if (x < 0 || y < 0 || y + piece.height > this.height || x + piece.width > this.width)
       return true
 
     for (let i = 0; i < piece.height; i++) {
@@ -271,11 +270,11 @@ module.exports = class Board extends EventEmitter {
 
     let lines = [
       '',
-      `Score: ${this.score} ${this.running ? "" : "PAUSED"}`,
+      `Score: ${this.score}, Speed: ${Number(1000 / this.dropInterval).toFixed(2)}/s ${this.running ? "" : "PAUSED"}`,
       '', '']
 
     let dw = Math.round((this.width - this.nextPiece.width) / 2)
-    let prefix = Array(dw).fill(' ').join('')
+    let prefix = repeatString(' ', dw)
     for (let i = 0; i < this.nextPiece.height; i += 2) {
       let line = [prefix]
       for (let j = 0; j < this.nextPiece.width; j++) {
@@ -290,7 +289,7 @@ module.exports = class Board extends EventEmitter {
       lines.push('')
 
     lines.push('')
-    lines.push(Array(this.width + 2).fill('▄').join(''))
+    lines.push(repeatString('▄', this.width + 2))
 
     for (let row = 0; row < this.height; row += 2) {
       let line = [theme.fullBlock]
@@ -304,7 +303,7 @@ module.exports = class Board extends EventEmitter {
     }
 
     lines.push(
-      Array(this.width + 2).fill('▀').join(''),
+      repeatString('▀', this.width + 2),
       '',
       '← left, → right, ↓ down, ↑ rotate\nSPACE: drop, s: start/stop, q: quit ',
       '')
