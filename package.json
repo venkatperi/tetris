@@ -1,8 +1,10 @@
 {
-  "name": "tetris",
+  "name": "tetris-cli",
   "version": "1.0.0",
   "description": "",
-  "bin": "bin/tetris-cli",
+  "bin": {
+    "tetris-cli": "bin/tetris-cli"
+  },
   "main": "tetris.js",
   "scripts": {
     "start": "node tetris.js",
