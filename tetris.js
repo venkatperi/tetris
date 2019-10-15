@@ -38,8 +38,5 @@ stdin.on('data', function (key) {
 const game = new Game(10, 20);
 
 function handleInput(input) {
-  if (input === Input.QUIT) {
-    process.exit();
-  }
   game.handleInput(input)
 }

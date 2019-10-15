@@ -1,19 +1,49 @@
-class LeaderBoard {
+const os = require('os')
+const fs = require('fs')
+const path = require('path')
+
+module.exports = class LeaderBoard {
     constructor() {
-        this.topScore = 0
-        this.topScoreDate = undefined
-        this.recent = []
+        this.data = {}
+        this.data.topScore = 0
+        this.data.topScoreDate = undefined
+        this.data.recent = []
+        this.load()
+    }
+
+    get scoreFileName() {
+        let homedir = os.homedir()
+        return path.join(homedir, '.tetris-scores')
     }
 
     addScore(score) {
-        this.recent.push([score, new Date()])
-        if (score > this.topScore)
-            this.topScore = score
-        if (this.recent.length > 100)
-            this.recent.shift()
+        this.data.recent.push([score, new Date()])
+        if (score > this.data.topScore)
+            this.data.topScore = score
+        if (this.data.recent.length > 100)
+            this.data.recent.shift()
     }
 
-    load() { }
+    load() {
+        fs.exists(this.scoreFileName, (exists) => {
+            if (exists)
+                fs.readFile(this.scoreFileName, "utf8", (err, buf) => {
+                    try {
+                        this.data = JSON.parse(buf)
+                    }
+                    catch (err) {
 
-    save() { }
+                    }
+                })
+        })
+    }
+
+    save() {
+        return new Promise((resolve, reject) => {
+            fs.writeFile(this.scoreFileName, JSON.stringify(this.data, null, 2), (err) => {
+                if (err) return reject(err)
+                resolve()
+            })
+        })
+    }
 }

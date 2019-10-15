@@ -82,8 +82,9 @@ module.exports = class Board extends EventEmitter {
     this.piece.y = 0
 
     if (this.collides(this.piece)) {
-      this.emit('over')
-      return this.stop()
+      this.stop()
+      this.emit('over', this.score)
+      return
     }
 
     this.drawPiece(this.piece)
@@ -235,6 +236,11 @@ module.exports = class Board extends EventEmitter {
       case Input.DOWN: this.movePieceDown(); break;
       case Input.UP: this.rotatePieceLeft90(); break;
       case Input.SPACE: this.dropPiece(); break;
+      case Input.QUIT: {
+        this.stop()
+        this.emit('over', this.score)
+        return
+      }
       default: return
     }
 
