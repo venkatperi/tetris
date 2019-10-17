@@ -5,10 +5,8 @@
 ### Install with npm
 ```
 npm install -g tetris-cli
+tetris-cli
 ```
-
-### Download Prebuilt Binaries
-Download prebuilt binaries (created with `pkg`) from [here](https://github.com/venkatperi/tetris/releases/latest)
 
 ### Download & Install (via node)
 
