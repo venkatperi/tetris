@@ -82,13 +82,16 @@ module.exports = class Board extends EventEmitter {
     this.piece.y = 0
 
     if (this.collides(this.piece)) {
-      this.stop()
-      this.emit('over', this.score)
-      return
+      return this.quit()
     }
 
     this.drawPiece(this.piece)
     this.draw()
+  }
+
+  quit() {
+    this.stop()
+    this.emit('over', this.score)
   }
 
   /**
@@ -219,13 +222,9 @@ module.exports = class Board extends EventEmitter {
    * @param input
    */
   handleInput(input) {
-    if (input === Input.STARTSTOP) {
-      if (this.running)
-        this.stop();
-      else
-        this.start();
-      this.draw()
-      return
+    switch (input) {
+      case Input.STARTSTOP: return this.toggleStartStop();
+      case Input.QUIT: return this.quit();
     }
 
     if (!this.running)
@@ -236,14 +235,17 @@ module.exports = class Board extends EventEmitter {
       case Input.DOWN: this.movePieceDown(); break;
       case Input.UP: this.rotatePieceLeft90(); break;
       case Input.SPACE: this.dropPiece(); break;
-      case Input.QUIT: {
-        this.stop()
-        this.emit('over', this.score)
-        return
-      }
       default: return
     }
 
+    this.draw()
+  }
+
+  toggleStartStop() {
+    if (this.running)
+      this.stop();
+    else
+      this.start();
     this.draw()
   }
 
