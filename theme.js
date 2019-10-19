@@ -1,10 +1,10 @@
 let theme = {
-    fullBlock: '█',
-    fullBlockDark: '▓',
-    fullBlockMedium: '▒',
-    fullBlockLight: '░',
-    blocks: [],
-    colors: ['red', 'blue', 'yellow', 'green', 'magenta', 'cyan', 'white']
+  fullBlock: '█',
+  fullBlockDark: '▓',
+  fullBlockMedium: '▒',
+  fullBlockLight: '░',
+  blocks: [],
+  colors: ['red', 'blue', 'yellow', 'green', 'magenta', 'cyan', 'orange']
 
 }
 

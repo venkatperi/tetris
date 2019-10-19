@@ -6,6 +6,7 @@ const _ = require('lodash')
 const chalk = require('chalk')
 const { EventEmitter } = require('events')
 const { repeatString, randomInt } = require('./util')
+const RandomGenerator = require('./randomGenerator')
 
 const { stdout } = process;
 
@@ -19,9 +20,11 @@ module.exports = class Board extends EventEmitter {
     this.piece = undefined
     this.dropInterval = 1000
     this.refreshRate = 33
-    this.nextPiece = this.getRandomPiece()
     this.level = 1
     this._score = 0
+    this.randomGenerator = new RandomGenerator()
+    this.tetrominoes = this.randomGenerator.tetrominoes()
+    this.nextPiece = this.getRandomPiece()
 
     this.draw = _.throttle(this._doDraw, this.refreshRate)
     this.clear()
@@ -65,9 +68,10 @@ module.exports = class Board extends EventEmitter {
    * @returns {Piece|*}
    */
   getRandomPiece() {
-    let keys = Object.keys(shapes)
-    let key = keys[randomInt(0, keys.length - 1)]
-    return new Piece(key, 0, 0)
+    // let keys = Object.keys(shapes)
+    // let key = keys[randomInt(0, keys.length - 1)]
+    let x = this.tetrominoes.next()
+    return new Piece(x.value, 0, 0)
   }
 
   /**

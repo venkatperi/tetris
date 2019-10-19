@@ -2,6 +2,16 @@ const shapes = require('./shapes')
 const theme = require('./theme')
 const { randomInt } = require('./util')
 
+const colors = {
+  I: 'lightblue',
+  J: 'darkblue',
+  L: 'orange',
+  O: 'yellow',
+  S: 'green',
+  Z: 'red',
+  T: 'purple'
+}
+
 module.exports = class Piece {
 
   constructor(shape, x, y, color) {
