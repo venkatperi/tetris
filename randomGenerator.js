@@ -1,16 +1,18 @@
-const shapes = require('./shapes')
 const { randomInt } = require('./util')
 
 class RandomGenerator {
-  constructor() {
+  constructor(length) {
+    this.length = length
     this.initBag()
   }
 
   initBag() {
-    this.bag = Object.keys(shapes)
+    this.bag = []
+    for (let i = 0; i < this.length; i++)
+      this.bag.push(i)
   }
 
-  * tetrominoes() {
+  * iterator() {
     while (true) {
       if (this.bag.length === 0)
         this.initBag()
@@ -24,13 +26,14 @@ class RandomGenerator {
 
 }
 
-/*let gen = new RandomGenerator()
-let iter = gen.tetromino()
+/*let gen = new RandomGenerator(5)
+let iter = gen.iterator()
 let t = iter.next()
 for (let i = 0; i < 10; i++) {
   console.log(t.value)
   t = iter.next()
 }
 */
+
 
 module.exports = RandomGenerator

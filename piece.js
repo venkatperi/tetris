@@ -1,6 +1,7 @@
 const shapes = require('./shapes')
 const theme = require('./theme')
 const { randomInt } = require('./util')
+const RandomGenerator = require('./randomGenerator')
 
 const colors = {
   I: 'lightblue',
@@ -12,11 +13,13 @@ const colors = {
   T: 'purple'
 }
 
+randomizer = new RandomGenerator(theme.colors.length).iterator()
+
 module.exports = class Piece {
 
   constructor(shape, x, y, color) {
     this.cells = []
-    this.color = color || randomInt(1, theme.colors.length)
+    this.color = color || (randomizer.next().value + 1)
     this.x = x
     this.y = y
 

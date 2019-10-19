@@ -22,8 +22,8 @@ module.exports = class Board extends EventEmitter {
     this.refreshRate = 33
     this.level = 1
     this._score = 0
-    this.randomGenerator = new RandomGenerator()
-    this.tetrominoes = this.randomGenerator.tetrominoes()
+    this.randomGenerator = new RandomGenerator(Object.keys(shapes).length)
+    this.rgIter = this.randomGenerator.iterator()
     this.nextPiece = this.getRandomPiece()
 
     this.draw = _.throttle(this._doDraw, this.refreshRate)
@@ -70,8 +70,9 @@ module.exports = class Board extends EventEmitter {
   getRandomPiece() {
     // let keys = Object.keys(shapes)
     // let key = keys[randomInt(0, keys.length - 1)]
-    let x = this.tetrominoes.next()
-    return new Piece(x.value, 0, 0)
+    let x = this.rgIter.next()
+    let key = Object.keys(shapes)[x.value]
+    return new Piece(shapes[key], 0, 0)
   }
 
   /**
