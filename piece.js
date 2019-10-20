@@ -1,7 +1,6 @@
 const shapes = require('./shapes')
 const theme = require('./theme')
-const { randomInt } = require('./util')
-const RandomGenerator = require('./randomGenerator')
+const randomGenerator = require('./rpg')
 
 const colors = {
   I: 'lightblue',
@@ -13,15 +12,18 @@ const colors = {
   T: 'purple'
 }
 
-randomizer = new RandomGenerator(theme.colors.length).iterator()
+randomizer = randomGenerator(theme.colors.length)
+
 
 module.exports = class Piece {
 
   constructor(shape, x, y, color) {
-    this.cells = []
-    this.color = color || (randomizer.next().value + 1)
+    this._prevRotation = 0
+    this._rotation = 0
     this.x = x
     this.y = y
+    this.cells = []
+    this.color = color || (randomizer.next().value + 1)
 
     if (typeof (shape) === 'string') {
       if (Object.keys(shapes).indexOf(shape) < 0)
@@ -47,6 +49,33 @@ module.exports = class Piece {
    */
   get width() {
     return this.cells[0].length
+  }
+
+  get rotation() {
+    return this._rotation
+  }
+
+  set rotation(val) {
+    this._prevRotation = this._rotation
+    this._rotation = val
+  }
+
+  get prevRotation() {
+    return this._prevRotation
+  }
+
+  /**
+   * 0 = spawn state
+   * 1 = state resulting from a clockwise rotation ("right") from spawn
+   * 2 = state resulting from 2 successive rotations in either direction from spawn.
+   * 3 = state resulting from a counter-clockwise ("left") rotation from spawn
+   */
+  get rotationState() {
+    return Math.floor(this._rotation / 90)
+  }
+
+  get prevRotationState() {
+    return Math.floor(this._prevRotation / 90)
   }
 
   /**
@@ -77,7 +106,9 @@ module.exports = class Piece {
     }
     let d = (this.height - this.width) / 2
     d = d < 0 ? Math.ceil(d) : Math.floor(d)
-    return new Piece(res, (this.x - d), (this.y + d), this.color)
+    let p = new Piece(res, (this.x - d), (this.y + d), this.color)
+    p.rotation = (p.rotation + 270) % 360
+    return p
   }
 
   getCell(x, y) {

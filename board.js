@@ -6,7 +6,7 @@ const _ = require('lodash')
 const chalk = require('chalk')
 const { EventEmitter } = require('events')
 const { repeatString, randomInt } = require('./util')
-const RandomGenerator = require('./randomGenerator')
+const randomGenerator = require('./rpg')
 
 const { stdout } = process;
 
@@ -19,11 +19,10 @@ module.exports = class Board extends EventEmitter {
     this.cells = [];
     this.piece = undefined
     this.dropInterval = 1000
-    this.refreshRate = 33
+    this.refreshRate = 15
     this.level = 1
     this._score = 0
-    this.randomGenerator = new RandomGenerator(Object.keys(shapes).length)
-    this.rgIter = this.randomGenerator.iterator()
+    this.rpg = randomGenerator(Object.keys(shapes).length)
     this.nextPiece = this.getRandomPiece()
 
     this.draw = _.throttle(this._doDraw, this.refreshRate)
@@ -57,8 +56,7 @@ module.exports = class Board extends EventEmitter {
     if (level > this.level) {
       this.level = level
       this.stop()
-      this.dropInterval -= 25
-      if (this.dropInterval < 250) this.dropInterval = 250
+      this.dropInterval *= 0.95
       this.start()
     }
   }
@@ -68,10 +66,7 @@ module.exports = class Board extends EventEmitter {
    * @returns {Piece|*}
    */
   getRandomPiece() {
-    // let keys = Object.keys(shapes)
-    // let key = keys[randomInt(0, keys.length - 1)]
-    let x = this.rgIter.next()
-    let key = Object.keys(shapes)[x.value]
+    let key = Object.keys(shapes)[this.rpg.next().value]
     return new Piece(shapes[key], 0, 0)
   }
 
@@ -176,6 +171,28 @@ module.exports = class Board extends EventEmitter {
     let res = this.piece.rotateLeft90()
     if (!this.collides(res, this.piece.x, this.piece.y))
       this.piece = res
+    else {
+      if (!this.collides(res, this.piece.x - 1, this.piece.y)) {
+        this.piece = res
+        this.piece.x -= 1
+      }
+      else if (!this.collides(res, this.piece.x + 1, this.piece.y)) {
+        this.piece = res
+        this.piece.x += 1
+      }
+      else if (!this.collides(res, this.piece.x - 2, this.piece.y)) {
+        this.piece = res
+        this.piece.x -= 2
+      }
+      else if (!this.collides(res, this.piece.x + 2, this.piece.y)) {
+        this.piece = res
+        this.piece.x += 2
+      }
+      else if (!this.collides(res, this.piece.x - 3, this.piece.y)) {
+        this.piece = res
+        this.piece.x -= 3
+      }
+    }
     this.drawPiece(this.piece)
   }
 
